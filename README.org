@@ -125,6 +125,9 @@ shows it inline. Without =:file= the result is the SVG markup itself, which
 | =ewavedrom-default-skin=             | ="default"=         | Skin when the diagram names none                 |
 | =ewavedrom-preview-fit-width=        | =t=                 | Shrink a preview wider than its window           |
 | =ewavedrom-preview-display-function= | right side window   | How the preview buffer is shown                  |
+| =ewavedrom-dark-skin-fix=            | =t=                 | Make the =dark= skin readable (see Fidelity)     |
+| =ewavedrom-dark-background=          | ="#000000"=         | Canvas colour for the =dark= skin                |
+| =ewavedrom-dark-accent=              | ="#58a6ff"=         | Edge, arrow and group colour for the =dark= skin |
 
 * Input format
 
@@ -141,8 +144,14 @@ actual font is whatever the SVG renderer picks for Helvetica, so labels can sit
 a pixel or two differently from a browser. This is true of WaveDrom's own SVG
 files too, since the SVG is identical.
 
-Where WaveDrom has quirks, this port keeps them, because the goal is the same
-output. For example, a =head.tick= string has the =hbounds= offset appended to
+One deliberate difference: WaveDrom paints the =dark= skin on a white canvas,
+so its white lines, white text and edge labels vanish. With
+=ewavedrom-dark-skin-fix= on (the default), a =dark= diagram gets a dark canvas
+and edges, arrows and group brackets in a light accent colour. Set it to nil
+for WaveDrom's exact bytes; the golden tests run that way.
+
+Where WaveDrom has other quirks, this port keeps them, because the goal is the
+same output. For example, a =head.tick= string has the =hbounds= offset appended to
 it as text, exactly as WaveDrom does.
 
 * Development

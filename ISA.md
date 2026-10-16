@@ -1,15 +1,17 @@
 ---
 phase: complete
-progress: 14/14
+progress: 15/15
 task: "Render WaveDrom WaveJSON timing diagrams inside Emacs with no third-party runtime"
 slug: ewavedrom
-iteration: 1
+iteration: 2
 started: 2026-10-16T00:00:00Z
 updated: 2026-10-16T00:00:00Z
 principal_stated_goal: "i like the emacs list only idea. having python (with no external dependencies other the python pkgs) would be a preferred fallback solution for me. Lets start with your recommendation and you can include adges and arrows on v1."
 principal_stated_goal_source: prompt
 principal_stated_goal_signal: 1
 principal_stated_goal_locked: 2026-10-16T00:00:00Z
+resumed_at: 2026-10-16T09:05:46.266Z
+resumed_from_phase: complete
 ---
 
 # ewavedrom -- WaveDrom timing diagrams in pure Emacs Lisp
@@ -86,6 +88,10 @@ Emacs from a WaveJSON buffer and from Org source blocks.
 - [x] ISC-14: README.org documents install, usage, the dependency list (Emacs
       version, librsvg) and the WaveDrom MIT attribution; LICENSE carries both
       copyright lines. -- `README.org, LICENSE`
+- [x] ISC-15: A `dark` skin diagram is readable: dark canvas, and no `#0041c4`,
+      `#00F` or white label boxes left; other skins stay byte-identical to
+      WaveDrom, and `ewavedrom-dark-skin-fix` nil restores WaveDrom's bytes.
+      -- `ERT dark-skin-is-readable, dark-fix-leaves-other-skins-alone; GUI capture`
 
 ## Test Strategy
 
@@ -121,6 +127,10 @@ Emacs from a WaveJSON buffer and from Org source blocks.
   tutorial diagram in the first GUI check.
 - `.json` files are recognised by content (`magic-mode-alist`), matching the
   VS Code workflow without renaming files.
+- D-auto-2026-10-16T09:05:46.266Z: Auto-resumed from complete to learn at 2026-10-16T09:05:46.266Z -- iteration 2
+- The `dark` skin deviates from WaveDrom by default (the author, 2026-10-16: "the
+  dark svg doesn't look good"): WaveDrom paints it on white. Golden tests pin
+  the fix off.
 
 ## Not yet specified
 

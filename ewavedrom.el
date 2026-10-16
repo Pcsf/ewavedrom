@@ -39,6 +39,22 @@
   "Skin used when the WaveJSON does not name one in `config.skin'."
   :type 'string)
 
+(defcustom ewavedrom-dark-skin-fix t
+  "Non-nil makes the `dark' skin readable.
+WaveDrom draws that skin on a white canvas, so its white lines and text
+vanish, and edge labels sit on white boxes.  The fix paints the canvas
+`ewavedrom-dark-background' and recolours edges with
+`ewavedrom-dark-accent'.  Nil gives WaveDrom's output unchanged."
+  :type 'boolean)
+
+(defcustom ewavedrom-dark-background "#000000"
+  "Canvas colour for the `dark' skin when `ewavedrom-dark-skin-fix' is on."
+  :type 'color)
+
+(defcustom ewavedrom-dark-accent "#58a6ff"
+  "Edge, arrow and group colour for the `dark' skin when the fix is on."
+  :type 'color)
+
 ;;;; Values
 ;;
 ;; JS objects are (:obj (KEY . VAL)...) so key order follows insertion order
@@ -1251,6 +1267,19 @@ Lists in ST are built in reverse."
                   (ewavedrom--stringify waves)
                   "</svg>"))))))
 
+(defun ewavedrom--fix-dark (svg)
+  "Recolour the light-canvas parts WaveDrom leaves in a dark-skin SVG."
+  (let ((bg ewavedrom-dark-background)
+        (accent ewavedrom-dark-accent)
+        (case-fold-search nil))
+    (dolist (rule (list (cons "style=\"stroke:none;fill:white\"" (concat "style=\"stroke:none;fill:" bg "\""))
+                        (cons "style=\"fill:#FFF;\"" (concat "style=\"fill:" bg ";\""))
+                        (cons "#0041c4" accent)
+                        (cons "stroke:#00F;" (concat "stroke:" accent ";"))
+                        (cons "</style>" (concat ".s6{fill:" bg "}</style>"))))
+      (setq svg (replace-regexp-in-string (regexp-quote (car rule)) (cdr rule) svg t t)))
+    svg))
+
 ;;;###autoload
 (defun ewavedrom-render-string (string)
   "Render the WaveJSON in STRING and return the SVG text."
@@ -1258,7 +1287,11 @@ Lists in ST are built in reverse."
     (unless (ewavedrom--obj-p source)
       (user-error "WaveJSON: the root has to be an object, {signal: [...]}"))
     (let ((signal (ewavedrom--get source "signal")))
-      (cond ((vectorp signal) (ewavedrom--render-signal source 0))
+      (cond ((vectorp signal)
+             (let ((svg (ewavedrom--render-signal source 0)))
+               (if (and ewavedrom-dark-skin-fix (equal (car (ewavedrom--skin source)) "dark"))
+                   (ewavedrom--fix-dark svg)
+                 svg)))
             (signal (user-error "WaveJSON: `signal' has to be an array"))
             ((or (ewavedrom--has source "reg") (ewavedrom--has source "assign"))
              (user-error "WaveJSON: only `signal' diagrams are supported, not `reg' or `assign'"))

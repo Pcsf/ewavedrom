@@ -86,7 +86,8 @@
     (eval
      `(ert-deftest ,(intern (concat "ewavedrom-test-golden-" name)) ()
         ,(format "Rendering %s matches WaveDrom byte for byte." name)
-        (let ((got (ewavedrom-render-string (ewavedrom-test--slurp ,case)))
+        (let ((got (let ((ewavedrom-dark-skin-fix nil))
+                     (ewavedrom-render-string (ewavedrom-test--slurp ,case))))
               (want (ewavedrom-test--slurp ,ref)))
           (unless (equal got want)
             (let ((i (or (cl-mismatch got want) 0)))
@@ -94,6 +95,34 @@
                               :got (substring got (max 0 (- i 60)) (min (length got) (+ i 60)))
                               :want (substring want (max 0 (- i 60)) (min (length want) (+ i 60)))))))))
      t)))
+
+;;;; Dark skin fix: WaveDrom paints its dark skin on a white canvas
+
+(defun ewavedrom-test--count (re s)
+  (let ((n 0) (start 0))
+    (while (string-match re s start) (setq n (1+ n) start (match-end 0)))
+    n))
+
+(ert-deftest ewavedrom-test-dark-skin-is-readable ()
+  (let* ((src (ewavedrom-test--slurp (expand-file-name "cases/skin-dark.json" ewavedrom-test--dir)))
+         (raw (let ((ewavedrom-dark-skin-fix nil)) (ewavedrom-render-string src)))
+         (svg (let ((ewavedrom-dark-skin-fix t)) (ewavedrom-render-string src))))
+    (should (string-match-p "fill:white" raw))
+    (should-not (string-match-p "fill:white" svg))
+    (should (string-match-p (concat "<rect width=\"[0-9.]+\" height=\"[0-9.]+\" style=\"stroke:none;fill:"
+                                    (regexp-quote ewavedrom-dark-background) "\"/>")
+                            svg))
+    (should-not (string-match-p "#0041c4\\|stroke:#00F;\\|fill:#FFF;" svg))
+    (should (= (ewavedrom-test--count (regexp-quote ewavedrom-dark-accent) svg)
+               (ewavedrom-test--count "#0041c4\\|stroke:#00F;" raw)))
+    (should (string-match-p (concat "\\.s6{fill:" (regexp-quote ewavedrom-dark-background) "}</style>") svg))))
+
+(ert-deftest ewavedrom-test-dark-fix-leaves-other-skins-alone ()
+  (let ((ewavedrom-dark-skin-fix t))
+    (dolist (name '("basic-tutorial" "edges-tutorial" "skin-lowkey"))
+      (should (equal (ewavedrom-render-string
+                      (ewavedrom-test--slurp (expand-file-name (concat "cases/" name ".json") ewavedrom-test--dir)))
+                     (ewavedrom-test--slurp (expand-file-name (concat "reference/" name ".svg") ewavedrom-test--dir)))))))
 
 ;;;; Corpus coverage: the golden tests prove only what the corpus exercises
 
