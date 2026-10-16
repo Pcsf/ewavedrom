@@ -124,6 +124,53 @@
                       (ewavedrom-test--slurp (expand-file-name (concat "cases/" name ".json") ewavedrom-test--dir)))
                      (ewavedrom-test--slurp (expand-file-name (concat "reference/" name ".svg") ewavedrom-test--dir)))))))
 
+;;;; Modern skins: opt-in, themed, a colour per lane
+
+(defconst ewavedrom-test--modern-src
+  "{ signal: [
+  { name: 'clk', wave: 'p...' },
+  { name: 'bus', wave: 'x=.3', data: 'a b', node: '.a..' },
+  { name: 'own', wave: '01.0', color: '#123456', node: '...b' },
+  [ 'grp', { name: 'q', wave: 'z.10' } ]
+], edge: ['a~>b lbl'], config: { skin: '%s' } }")
+
+(ert-deftest ewavedrom-test-modern-skins-exist ()
+  (should (member "modern-dark" (ewavedrom-skin-names)))
+  (should (member "modern-light" (ewavedrom-skin-names)))
+  (dolist (s (mapcar #'car ewavedrom-skins))
+    (should (member s (ewavedrom-skin-names)))))
+
+(ert-deftest ewavedrom-test-modern-skins-are-themed ()
+  (dolist (name '("modern-dark" "modern-light"))
+    (let* ((theme (cdr (assoc name ewavedrom-modern-themes)))
+           (palette (plist-get theme :palette))
+           (svg (ewavedrom-render-string (format ewavedrom-test--modern-src name))))
+      (should (string-match-p (concat "<rect width=\"[0-9.]+\" height=\"[0-9.]+\" style=\"stroke:none;fill:"
+                                      (regexp-quote (plist-get theme :background)) "\"/>")
+                              svg))
+      (should (string-match-p (concat "id=\"wavelane_0_0\" style=\"color:" (regexp-quote (nth 0 palette)) "\"") svg))
+      (should (string-match-p (concat "id=\"wavelane_1_0\" style=\"color:" (regexp-quote (nth 1 palette)) "\"") svg))
+      (should (string-match-p "id=\"wavelane_2_0\" style=\"color:#123456\"" svg))
+      (should (string-match-p (concat "id=\"wavelane_3_0\" style=\"color:" (regexp-quote (nth 3 palette)) "\"") svg))
+      (should (string-match-p "\\.s1{[^}]*stroke:currentColor[^}]*stroke-width:1\\.5" svg))
+      (should (string-match-p "\\.s7{[^}]*fill:currentColor[^}]*fill-opacity:0\\.[0-9]+" svg))
+      (should (string-match-p "\\.info{fill:currentColor}" svg))
+      ;; Edge label boxes fit monospace text: 3 chars x 0.6em x 11px + 2.
+      (should (string-match-p "<rect x=\"-10\" y=\"-5\" width=\"21.8\" height=\"11\"" svg))
+      (dolist (bad '("fill:white" "fill:#FFF;" "#0041c4" "stroke:#00F;" "stroke:#888"))
+        (should-not (string-match-p (regexp-quote bad) svg)))
+      (when (fboundp 'libxml-parse-xml-region)
+        (with-temp-buffer
+          (insert svg)
+          (should (eq (car (libxml-parse-xml-region (point-min) (point-max))) 'svg)))))))
+
+(ert-deftest ewavedrom-test-modern-skin-leaves-default-alone ()
+  (let ((case (expand-file-name "cases/basic-tutorial.json" ewavedrom-test--dir)))
+    (ewavedrom-render-string (format ewavedrom-test--modern-src "modern-dark"))
+    (should (equal (ewavedrom-render-string (ewavedrom-test--slurp case))
+                   (ewavedrom-test--slurp (expand-file-name "reference/basic-tutorial.svg"
+                                                            ewavedrom-test--dir))))))
+
 ;;;; Corpus coverage: the golden tests prove only what the corpus exercises
 
 (defun ewavedrom-test--corpus ()

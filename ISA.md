@@ -1,6 +1,6 @@
 ---
 phase: complete
-progress: 15/15
+progress: 18/18
 task: "Render WaveDrom WaveJSON timing diagrams inside Emacs with no third-party runtime"
 slug: ewavedrom
 iteration: 2
@@ -92,6 +92,15 @@ Emacs from a WaveJSON buffer and from Org source blocks.
       `#00F` or white label boxes left; other skins stay byte-identical to
       WaveDrom, and `ewavedrom-dark-skin-fix` nil restores WaveDrom's bytes.
       -- `ERT dark-skin-is-readable, dark-fix-leaves-other-skins-alone; GUI capture`
+- [x] ISC-16: `config.skin` accepts `modern-dark` and `modern-light`: a themed
+      canvas, a colour per lane that drives its name and trace, translucent
+      filled buses, and 1.5 px lines; a signal's own `color` overrides its lane
+      colour. -- `ERT modern-skins-exist, modern-skins-are-themed`
+- [x] ISC-17: Anti: the modern skins leave no WaveDrom light-canvas colour
+      behind (`fill:white`, `fill:#FFF;`, `#0041c4`, `#00F`, `#888` grid), and
+      every vendored skin still matches WaveDrom byte for byte. -- `ERT modern-skins-are-themed, golden-* (24), modern-skin-leaves-default-alone`
+- [x] ISC-18: Both modern skins render readable diagrams of the showcase
+      examples, checked by eye in a PNG and in GUI Emacs. -- `build/modern PNG sheets; clean GUI Emacs 31.1 frame export of showcase.org`
 
 ## Test Strategy
 
@@ -131,6 +140,9 @@ Emacs from a WaveJSON buffer and from Org source blocks.
 - The `dark` skin deviates from WaveDrom by default (the author, 2026-10-16: "the
   dark svg doesn't look good"): WaveDrom paints it on white. Golden tests pin
   the fix off.
+- Modern skins restyle WaveDrom's default bricks through CSS (`currentColor` per
+  lane) rather than new artwork, so every brick shape stays WaveDrom's; label
+  widths switch to a monospace estimate so names and edge labels fit.
 
 ## Not yet specified
 

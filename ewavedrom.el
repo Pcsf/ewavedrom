@@ -55,6 +55,31 @@ vanish, and edge labels sit on white boxes.  The fix paints the canvas
   "Edge, arrow and group colour for the `dark' skin when the fix is on."
   :type 'color)
 
+(defcustom ewavedrom-modern-themes
+  '(("modern-dark"
+     :background "#1b1d23" :foreground "#d7dae0" :muted "#7f848e"
+     :grid "#2c313a" :accent "#82aaff" :unknown "#e06c75"
+     :palette ("#e5c07b" "#f0a35e" "#61afef" "#56d4a0"
+               "#c678dd" "#f78fb3" "#56b6c2" "#98c379"))
+    ("modern-light"
+     :background "#ffffff" :foreground "#24292f" :muted "#8c959f"
+     :grid "#e1e4e8" :accent "#0969da" :unknown "#cf222e"
+     :palette ("#b7791f" "#c05621" "#2b6cb0" "#2f855a"
+               "#805ad5" "#b83280" "#2c7a7b" "#4a7c1f")))
+  "Themes for the modern skins, selected by name in `config.skin'.
+Each lane takes the next :palette colour for its name, trace and bus fill;
+a signal's own `color' key overrides it.  Data bricks 3-9 use the palette
+from its third entry on."
+  :type '(alist :key-type string :value-type plist))
+
+(defcustom ewavedrom-modern-font
+  "'JetBrains Mono','DejaVu Sans Mono','Cascadia Mono',Consolas,Menlo,monospace"
+  "CSS font-family list for the modern skins; a monospace font is assumed."
+  :type 'string)
+
+(defvar ewavedrom--theme nil
+  "Theme plist of the modern skin being rendered, or nil for a WaveDrom skin.")
+
 ;;;; Values
 ;;
 ;; JS objects are (:obj (KEY . VAL)...) so key order follows insertion order
@@ -818,8 +843,13 @@ Lists in ST are built in reverse."
           (let* ((x (nth 1 el))
                  (xoffset (if (> x 0) (- (fceiling (* 2 x)) (* 2 x)) (- (* 2 x)))))
             (push (append
-                   (list "g" (ewavedrom--tt 0 (+ (ewavedrom--lane-y0 lane) (* j (ewavedrom--lane-yo lane)))
-                                            "id" (format "wavelane_%d_%d" j index)))
+                   (list "g" (let ((attrs (ewavedrom--tt 0 (+ (ewavedrom--lane-y0 lane)
+                                                              (* j (ewavedrom--lane-yo lane)))
+                                                         "id" (format "wavelane_%d_%d" j index))))
+                               (when ewavedrom--theme
+                                 (ewavedrom--put attrs "style"
+                                                 (concat "color:" (ewavedrom--lane-colour (nth 4 el) j))))
+                               attrs))
                    (list (append (list "text" (ewavedrom--obj "x" (ewavedrom--lane-tgo lane)
                                                               "y" (ewavedrom--lane-ym lane)
                                                               "class" "info"
@@ -834,7 +864,11 @@ Lists in ST are built in reverse."
                   res)
             (let ((b (nth 2 el)))
               (setq xmax (max xmax (if (listp b) (length b) 0))))
-            (push (if (stringp name) (ewavedrom--text-width name 11) 0) glengths))))
+            (push (cond ((not (stringp name)) 0)
+                        ;; Monospace at 12px advances 0.6em per character.
+                        (ewavedrom--theme (* (length name) 7.2))
+                        (t (ewavedrom--text-width name 11)))
+                  glengths))))
       (setq j (1+ j)))
     (setf (ewavedrom--lane-xmax lane)
           (min xmax (- (ewavedrom--lane-xmax-cfg lane) (ewavedrom--lane-xmin-cfg lane))))
@@ -988,7 +1022,10 @@ Lists in ST are built in reverse."
     (list d style lx ly)))
 
 (defun ewavedrom--render-label (x y text size)
-  (let ((w (+ (ewavedrom--text-width text size) 2)))
+  (let ((w (+ (if ewavedrom--theme
+                  (/ (* (length text) 6 size) 10.0)
+                (ewavedrom--text-width text size))
+              2)))
     (list "g" (ewavedrom--tt x y)
           (list "rect" (ewavedrom--obj "x" (- (ash (truncate w) -1))
                                        "y" (- (ash (truncate size) -1))
@@ -1209,10 +1246,69 @@ Lists in ST are built in reverse."
 
 ;;;; Whole diagram
 
+(defun ewavedrom-skin-names ()
+  "Names `config.skin' accepts: WaveDrom's skins, then the modern ones."
+  (append (mapcar #'car ewavedrom-skins) (mapcar #'car ewavedrom-modern-themes)))
+
+(defun ewavedrom--lane-colour (sig j)
+  "Colour of lane J: the signal SIG's own `color', else the theme palette."
+  (let ((own (ewavedrom--get sig "color"))
+        (palette (plist-get ewavedrom--theme :palette)))
+    (if (and (stringp own) (string-match-p "\\`#?[[:alnum:]]+\\'" own))
+        own
+      (nth (mod j (length palette)) palette))))
+
+(defun ewavedrom--modern-css (theme)
+  "Style sheet giving WaveDrom's default bricks the modern look of THEME."
+  (let ((fg (plist-get theme :foreground))
+        (bg (plist-get theme :background))
+        (muted (plist-get theme :muted))
+        (accent (plist-get theme :accent))
+        (unknown (plist-get theme :unknown))
+        (palette (plist-get theme :palette))
+        (line "fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"))
+    (concat
+     "<style type=\"text/css\">"
+     "svg{color:" fg "}"
+     "text{font-size:12px;font-style:normal;font-weight:normal;font-family:" ewavedrom-modern-font
+     ";fill:" fg "}"
+     ".h1{font-size:28px;font-weight:bold}.h2{font-size:22px;font-weight:bold}"
+     ".h3{font-size:18px;font-weight:bold}.h4{font-size:15px;font-weight:bold}"
+     ".h5{font-size:12px;font-weight:bold}.h6{font-size:10px;font-weight:bold}"
+     ".muted{fill:" muted "}.warning{fill:#d29922}.error{fill:" unknown "}"
+     ".info{fill:currentColor}.success{fill:#3fb950}"
+     ".s1{" line "}"
+     ".s2{fill:none;stroke:" unknown ";stroke-width:0.75;stroke-opacity:0.8;stroke-linecap:round}"
+     ".s3{" line ";stroke-dasharray:2,3}"
+     ".s4{" line "}"
+     ".s5{fill:" bg ";stroke:none}"
+     ".s6{fill:currentColor;stroke:none}"
+     ".s7{fill:currentColor;fill-opacity:0.22;stroke:none}"
+     (let ((i 8) (css ""))
+       (dolist (c (append (nthcdr 2 palette) (nthcdr 2 palette)))
+         (when (<= i 14)
+           (setq css (concat css (format ".s%d{fill:%s;fill-opacity:0.35;stroke:none}" i c))
+                 i (1+ i))))
+       css)
+     ".s15{fill:" accent ";stroke:none}"
+     ".s16{fill:none;stroke:" accent ";stroke-width:1.5}"
+     "</style>")))
+
 (defun ewavedrom--skin (source)
-  (or (assoc (ewavedrom--config source "skin") ewavedrom-skins)
-      (assoc ewavedrom-default-skin ewavedrom-skins)
-      (assoc "default" ewavedrom-skins)))
+  "The skin SOURCE asks for; a modern skin is built from WaveDrom's default."
+  (let* ((name (ewavedrom--config source "skin"))
+         (name (if (member name (ewavedrom-skin-names)) name ewavedrom-default-skin))
+         (theme (cdr (assoc name ewavedrom-modern-themes))))
+    (if (not theme)
+        (or (assoc name ewavedrom-skins) (assoc "default" ewavedrom-skins))
+      (let ((base (cdr (assoc "default" ewavedrom-skins))))
+        (list name
+              :head (plist-get base :head)
+              :socket (plist-get base :socket)
+              :defs (replace-regexp-in-string "<style type=\"text/css\">.*?</style>"
+                                              (ewavedrom--modern-css theme)
+                                              (plist-get base :defs) t t)
+              :theme theme)))))
 
 (defun ewavedrom--render-signal (source index)
   "SVG text for the signal diagram SOURCE."
@@ -1280,6 +1376,21 @@ Lists in ST are built in reverse."
       (setq svg (replace-regexp-in-string (regexp-quote (car rule)) (cdr rule) svg t t)))
     svg))
 
+(defun ewavedrom--finish-modern (svg theme)
+  "Recolour the parts of SVG the renderer draws with fixed WaveDrom colours."
+  (let ((bg (plist-get theme :background))
+        (accent (plist-get theme :accent))
+        (case-fold-search nil))
+    (dolist (rule (list (cons "style=\"stroke:none;fill:white\"" (concat "style=\"stroke:none;fill:" bg "\""))
+                        (cons "style=\"fill:#FFF;\"" (concat "style=\"fill:" bg ";\""))
+                        (cons "fill:#ffffffcc" (concat "fill:" bg "cc"))
+                        (cons "stroke:#888;stroke-width:0.5;stroke-dasharray:1,3"
+                              (concat "stroke:" (plist-get theme :grid) ";stroke-width:1"))
+                        (cons "#0041c4" accent)
+                        (cons "stroke:#00F;" (concat "stroke:" accent ";"))))
+      (setq svg (replace-regexp-in-string (regexp-quote (car rule)) (cdr rule) svg t t)))
+    svg))
+
 ;;;###autoload
 (defun ewavedrom-render-string (string)
   "Render the WaveJSON in STRING and return the SVG text."
@@ -1288,10 +1399,14 @@ Lists in ST are built in reverse."
       (user-error "WaveJSON: the root has to be an object, {signal: [...]}"))
     (let ((signal (ewavedrom--get source "signal")))
       (cond ((vectorp signal)
-             (let ((svg (ewavedrom--render-signal source 0)))
-               (if (and ewavedrom-dark-skin-fix (equal (car (ewavedrom--skin source)) "dark"))
-                   (ewavedrom--fix-dark svg)
-                 svg)))
+             (let* ((skin (ewavedrom--skin source))
+                    (theme (plist-get (cdr skin) :theme))
+                    (svg (let ((ewavedrom--theme theme))
+                           (ewavedrom--render-signal source 0))))
+               (cond (theme (ewavedrom--finish-modern svg theme))
+                     ((and ewavedrom-dark-skin-fix (equal (car skin) "dark"))
+                      (ewavedrom--fix-dark svg))
+                     (t svg))))
             (signal (user-error "WaveJSON: `signal' has to be an array"))
             ((or (ewavedrom--has source "reg") (ewavedrom--has source "assign"))
              (user-error "WaveJSON: only `signal' diagrams are supported, not `reg' or `assign'"))

@@ -118,6 +118,28 @@ From Lisp:
 shows it inline. Without =:file= the result is the SVG markup itself, which
 =:results html= carries straight into an HTML export.
 
+** Modern skins
+
+Two skins beyond WaveDrom's own give a waveform-viewer look: =modern-dark=
+and =modern-light=. Each lane gets its own colour, used for its name, its
+trace and a translucent fill on its buses; lines are 1.5 px, unknown (=x=)
+regions are hatched in red, and text is monospace.
+
+#+begin_example
+{ signal: [
+  { name: 'clk',  wave: 'p.....' },
+  { name: 'data', wave: 'x=.3.x', data: 'A B' },
+  { name: 'irq',  wave: '0..1.0', color: '#ff7b72' }
+], config: { skin: 'modern-dark' } }
+#+end_example
+
+A signal's =color= key overrides its lane colour; WaveDrom ignores the key,
+so the file still renders there. Data bricks =3= to =9= keep their own
+colours, so segments stay distinguishable. To use a modern skin for every
+diagram that names none, set =ewavedrom-default-skin= to ="modern-dark"=.
+Colours live in =ewavedrom-modern-themes=; add an entry there to define
+another theme.
+
 ** Customisation
 
 | Variable                             | Default             | Meaning                                          |
@@ -128,6 +150,8 @@ shows it inline. Without =:file= the result is the SVG markup itself, which
 | =ewavedrom-dark-skin-fix=            | =t=                 | Make the =dark= skin readable (see Fidelity)     |
 | =ewavedrom-dark-background=          | ="#000000"=         | Canvas colour for the =dark= skin                |
 | =ewavedrom-dark-accent=              | ="#58a6ff"=         | Edge, arrow and group colour for the =dark= skin |
+| =ewavedrom-modern-themes=            | dark and light      | Colours of the modern skins, by skin name        |
+| =ewavedrom-modern-font=              | monospace list      | CSS font-family of the modern skins              |
 
 * Input format
 
@@ -149,6 +173,11 @@ so its white lines, white text and edge labels vanish. With
 =ewavedrom-dark-skin-fix= on (the default), a =dark= diagram gets a dark canvas
 and edges, arrows and group brackets in a light accent colour. Set it to nil
 for WaveDrom's exact bytes; the golden tests run that way.
+
+The modern skins are not WaveDrom output at all, so no golden file covers
+them; their tests check the theme, the lane colours and that no WaveDrom
+canvas colour is left behind. Layout still follows WaveDrom, with label widths
+computed for a monospace font.
 
 Where WaveDrom has other quirks, this port keeps them, because the goal is the
 same output. For example, a =head.tick= string has the =hbounds= offset appended to
