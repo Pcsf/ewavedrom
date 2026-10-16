@@ -1,0 +1,3 @@
+{ signal: [ { name: 'clk', wave: 'p.....' } ],
+  head: { tick: 'a b c d e f g' , tock: ['10', '0.5'] },
+  foot: { tick: ['3'], tock: 'X' } }

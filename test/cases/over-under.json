@@ -1,0 +1,4 @@
+{ signal: [
+  { name: 'ou', wave: 'p.......', over: '2..0.3.', under: '4.5..0' },
+  { name: 'ph', wave: '0.1.0.1.', phase: 0.5, period: 1, over: '1..' }
+]}

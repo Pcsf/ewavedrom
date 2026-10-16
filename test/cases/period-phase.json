@@ -1,0 +1,7 @@
+{ signal: [
+  { name: 'p2',  wave: 'p...', period: 2 },
+  { name: 'p3h', wave: '0101', period: 3, phase: 0.5 },
+  { name: 'ph',  wave: '=.==.=', phase: 1.5, data: ['a', 'b', 'c', 'd'] },
+  { name: 'neg', wave: 'x=.=x', phase: -0.5, data: ['e', 'f'] },
+  { name: 'big', wave: '2.3.', phase: 3, data: ['g', 'h'] }
+], config: { hscale: 2 } }

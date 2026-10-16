@@ -1,0 +1,2 @@
+{ signal: [ { name: 'clk', wave: 'p..|.' }, { name: 'd', wave: 'x=.x', data: 'v' } ],
+  config: { hscale: 1.6 } }

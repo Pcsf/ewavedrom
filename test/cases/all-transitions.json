@@ -1,0 +1,27 @@
+// every two-character transition WaveDrom draws a brick for
+{ signal: [
+    { name: 'from 0', wave: '00010x0z0d0u0=02030405060708090h0l0H0L0p0n0P0N' },
+    { name: 'from 1', wave: '10111x1z1d1u1=12131415161718191h1l1H1L1p1n1P1N' },
+    { name: 'from x', wave: 'x0x1xxxzxdxux=x2x3x4x5x6x7x8x9xhxlxHxLxpxnxPxN' },
+    { name: 'from z', wave: 'z0z1zxzzzdzuz=z2z3z4z5z6z7z8z9zhzlzHzLzpznzPzN' },
+    { name: 'from d', wave: 'd0d1dxdzdddud=d2d3d4d5d6d7d8d9dhdldHdLdpdndPdN' },
+    { name: 'from u', wave: 'u0u1uxuzuduuu=u2u3u4u5u6u7u8u9uhuluHuLupunuPuN' },
+    { name: 'from =', wave: '=0=1=x=z=d=u===2=3=4=5=6=7=8=9=h=l=H=L=p=n=P=N' },
+    { name: 'from 2', wave: '20212x2z2d2u2=22232425262728292h2l2H2L2p2n2P2N' },
+    { name: 'from 3', wave: '30313x3z3d3u3=32333435363738393h3l3H3L3p3n3P3N' },
+    { name: 'from 4', wave: '40414x4z4d4u4=42434445464748494h4l4H4L4p4n4P4N' },
+    { name: 'from 5', wave: '50515x5z5d5u5=52535455565758595h5l5H5L5p5n5P5N' },
+    { name: 'from 6', wave: '60616x6z6d6u6=62636465666768696h6l6H6L6p6n6P6N' },
+    { name: 'from 7', wave: '70717x7z7d7u7=72737475767778797h7l7H7L7p7n7P7N' },
+    { name: 'from 8', wave: '80818x8z8d8u8=82838485868788898h8l8H8L8p8n8P8N' },
+    { name: 'from 9', wave: '90919x9z9d9u9=92939495969798999h9l9H9L9p9n9P9N' },
+    { name: 'from h', wave: 'h0h1hxhzhdhuh=h2h3h4h5h6h7h8h9hhhlhHhLhphnhPhN' },
+    { name: 'from l', wave: 'l0l1lxlzldlul=l2l3l4l5l6l7l8l9lhlllHlLlplnlPlN' },
+    { name: 'from H', wave: 'H0H1HxHzHdHuH=H2H3H4H5H6H7H8H9HhHlHHHLHpHnHPHN' },
+    { name: 'from L', wave: 'L0L1LxLzLdLuL=L2L3L4L5L6L7L8L9LhLlLHLLLpLnLPLN' },
+    { name: 'from p', wave: 'p0p1pxpzpdpup=p2p3p4p5p6p7p8p9phplpHpLpppnpPpN' },
+    { name: 'from n', wave: 'n0n1nxnzndnun=n2n3n4n5n6n7n8n9nhnlnHnLnpnnnPnN' },
+    { name: 'from P', wave: 'P0P1PxPzPdPuP=P2P3P4P5P6P7P8P9PhPlPHPLPpPnPPPN' },
+    { name: 'from N', wave: 'N0N1NxNzNdNuN=N2N3N4N5N6N7N8N9NhNlNHNLNpNnNPNN' },
+    { name: 'unknown', wave: 'q0q1.q' }
+] }

@@ -1,0 +1,6 @@
+{ signal: [
+  { name: 'clk', wave: 'p.....|..', node: '.a......' },
+  { name: 'bus', wave: 'x.345x|=.', data: ['head', 'body', 'tail', 'data'], node: '......b' },
+  { name: 'req', wave: '0.1..0|1.' },
+  { name: 'z',   wave: 'z.du.z|x.' }
+], edge: ['a~>b'], config: { skin: 'narrowerer' } }

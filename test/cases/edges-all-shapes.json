@@ -1,0 +1,31 @@
+// every arc shape in arc-shape.js, plus one unknown shape (==)
+{ signal: [
+    { name: 'A', wave: '0......................', node: 'abcdefghijklmnopqrstu' },
+    {},
+    { name: 'B', wave: '1......................', node: '.ABCDEFGHIJKLMNOPQRSTU' }
+  ],
+  edge: [
+    'a-A - label',
+    'b~B',
+    'c-~C -~ label',
+    'd~-D',
+    'e-|E -| label',
+    'f|-F',
+    'g-|-G -|- label',
+    'h->H',
+    'i~>I ~> label',
+    'j-~>J',
+    'k~->K ~-> label',
+    'l-|>L',
+    'm|->M |-> label',
+    'n-|->N',
+    'o<->O <-> label',
+    'p<~>P',
+    'q<-~>Q <-~> label',
+    'r<-|>R',
+    's<-|->S <-|-> label',
+    't+T',
+    'u==U == label'
+  ],
+  config: { hscale: 2 }
+}

@@ -1,0 +1,178 @@
+#+title: ewavedrom -- WaveDrom timing diagrams in pure Emacs Lisp
+
+Renders [[https://wavedrom.com][WaveDrom]] WaveJSON timing diagrams inside Emacs, with no external
+program: no Node.js, no browser, no Python, nothing to install but Emacs.
+
+The renderer is a port of WaveDrom 3.7.0, so a diagram looks exactly as
+WaveDrom draws it. For every case in the test corpus the SVG produced here is
+byte-for-byte the SVG WaveDrom produces, including edges and arrows.
+
+* What it does
+
+- Opens a WaveJSON file and shows the diagram in a side window, scaled to fit.
+- Re-renders the preview each time the file is saved.
+- Writes the diagram to an SVG file.
+- Renders =#+begin_src wavedrom= blocks in Org files.
+
+Supported: every wave character (=p n P N h l H L 0 1 x z = 2-9 d u . |=),
+=data= as an array or a string, =period=, =phase=, sub-cycles =<...>=, named
+and nested groups, spacer lanes, =head= / =foot= text and tick/tock rulers
+(including =every=), =config.hscale=, =config.hbounds=, =config.marks=,
+=gaps=, =over= / =under= annotations, piece-wise =pw= lanes, all six WaveDrom
+skins through =config.skin=, and every edge shape (=-=, =~=, =->=, =~>=,
+=-|->=, =<->=, =+=, ...) with labels.
+
+Not supported: =reg= (bitfield) and =assign= (logic circuit) diagrams.
+
+* Dependencies
+
+Runtime, on the machine where you use it:
+
+| What                     | Version | Why                                                            |
+|--------------------------+---------+----------------------------------------------------------------|
+| GNU Emacs                | 27.1+   | Tested on 27.1 (container =silex/emacs:27.1=) and 31.1          |
+| librsvg, built into Emacs | any     | Only for /displaying/ the image; rendering to SVG text needs nothing |
+
+Check SVG support with =M-: (image-type-available-p 'svg)=. Without it,
+=ewavedrom-render-file= and Org =:file= blocks still work; the preview shows
+the SVG text instead of the picture.
+
+The package uses only libraries that ship with Emacs (=cl-lib=, =subr-x=,
+=js-mode=, and =ob= for the optional Org support). It never starts a process
+or opens a network connection; =make audit= checks this on every build.
+
+Development only, never needed on the target machine:
+
+| What     | Version       | Used by                                                |
+|----------+---------------+--------------------------------------------------------|
+| bun      | 1.4+          | =make data=, =make refs= (the scripts in =tools/=)     |
+| wavedrom | 3.7.0, pinned | =tools/package.json=; the source of the skins and the reference SVGs |
+| librsvg  | 2.x           | =rsvg-convert= for =make png=                           |
+
+* Installation
+
+Copy =ewavedrom.el=, =ewavedrom-data.el= and =ob-ewavedrom.el= into a
+directory, then:
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/path/to/ewavedrom")
+(require 'ewavedrom)
+(require 'ob-ewavedrom)   ; only if you want Org source blocks
+#+end_src
+
+or with =use-package=:
+
+#+begin_src emacs-lisp
+(use-package ewavedrom
+  :load-path "/path/to/ewavedrom"
+  :demand t)
+
+(use-package ob-ewavedrom
+  :load-path "/path/to/ewavedrom"
+  :after org)
+#+end_src
+
+Byte-compiling (=make compile=) is optional; it makes the first render faster.
+
+* Usage
+
+** WaveJSON files
+
+A file opens in =ewavedrom-mode= when its name ends in =.wjson=, or when its
+content starts with ={signal:= -- so the =.json= files you use with the VS Code
+plug-in are recognised without renaming them.
+
+| Key       | Command                          | Effect                                     |
+|-----------+----------------------------------+--------------------------------------------|
+| =C-c C-c= | =ewavedrom-preview=              | Render and show the diagram on the right   |
+| =C-c C-s= | =ewavedrom-render-file-of-buffer= | Write =<file>.svg= next to the file        |
+
+=ewavedrom-mode= turns on =ewavedrom-preview-mode=, which re-renders on every
+save. A file with an error keeps showing the last good diagram, and the echo
+area names the line and column of the error.
+
+In any other buffer, =M-x ewavedrom-preview= renders the buffer, and
+=M-x ewavedrom-preview-mode= turns on render-on-save.
+
+From Lisp:
+
+#+begin_src emacs-lisp
+(ewavedrom-render-string "{signal: [{name: 'clk', wave: 'p...'}]}")  ; => "<svg ..."
+(ewavedrom-render-file "bus.json")             ; writes bus.svg
+(ewavedrom-render-file "bus.json" "out.svg")
+#+end_src
+
+** Org
+
+#+begin_example
+,#+begin_src wavedrom :file handshake.svg
+{ signal: [
+  { name: 'clk', wave: 'p.....' },
+  { name: 'req', wave: '01..0.', node: '.a....' },
+  { name: 'ack', wave: '0.1..0', node: '..b...' }
+], edge: ['a~>b'] }
+,#+end_src
+#+end_example
+
+=C-c C-c= on the block writes =handshake.svg= and links it; =C-c C-x C-v=
+shows it inline. Without =:file= the result is the SVG markup itself, which
+=:results html= carries straight into an HTML export.
+
+** Customisation
+
+| Variable                             | Default             | Meaning                                          |
+|--------------------------------------+---------------------+--------------------------------------------------|
+| =ewavedrom-default-skin=             | ="default"=         | Skin when the diagram names none                 |
+| =ewavedrom-preview-fit-width=        | =t=                 | Shrink a preview wider than its window           |
+| =ewavedrom-preview-display-function= | right side window   | How the preview buffer is shown                  |
+
+* Input format
+
+The input is what WaveDrom accepts, which is a JavaScript object literal
+rather than strict JSON: unquoted keys, single or double quotes, trailing
+commas, =//= and =/* */= comments, and numbers such as =.5=, =-1e3= or =0x1F=.
+Anything else WaveDrom would =eval= (expressions, function calls) is not
+accepted.
+
+* Fidelity
+
+Text widths are WaveDrom's own estimate, from its Helvetica width table. The
+actual font is whatever the SVG renderer picks for Helvetica, so labels can sit
+a pixel or two differently from a browser. This is true of WaveDrom's own SVG
+files too, since the SVG is identical.
+
+Where WaveDrom has quirks, this port keeps them, because the goal is the same
+output. For example, a =head.tick= string has the =hbounds= offset appended to
+it as text, exactly as WaveDrom does.
+
+* Development
+
+| Command      | What it does                                                       |
+|--------------+--------------------------------------------------------------------|
+| =make=       | compile with warnings as errors, run the ERT suite, run the audit  |
+| =make test=  | the ERT suite: reader, golden SVGs, corpus coverage, preview, Org  |
+| =make audit= | grep runtime files for processes, network and Emacs 28+ functions; each pattern is first proven on a planted file |
+| =make png=   | render every case and rasterise it with =rsvg-convert= into =build/= |
+| =make data=  | regenerate =ewavedrom-data.el= from the pinned WaveDrom            |
+| =make refs=  | regenerate =test/reference/*.svg= with WaveDrom itself              |
+
+The test oracle is WaveDrom. =test/cases/*.json= is the corpus;
+=tools/gen-reference.ts= renders each case with =wavedrom@3.7.0= and stores
+the SVG in =test/reference/=; the golden tests require identical bytes. To
+cover a new feature, add a case, run =make refs=, and look at the reference
+before trusting it.
+
+To move to a newer WaveDrom: bump the version in =tools/package.json=, run
+=make data refs test=, and port any change in WaveDrom's =lib/= that the
+failing cases point to.
+
+* Plan B
+
+If a machine's Emacs lacks SVG support, the next fallback is a Python port
+using only the standard library, writing the same SVG for an external viewer.
+It is not built yet.
+
+* Licence
+
+MIT. The rendering logic and the vendored skins come from WaveDrom, Copyright
+(c) 2011-2024 Aliaksei Chapyzhenka, also MIT. See =LICENSE=.

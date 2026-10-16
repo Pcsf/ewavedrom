@@ -1,0 +1,4 @@
+{ signal: [
+  { name: 'a', wave: '0.1.0.1.0.1.0.1.' },
+  { name: 'b', wave: 'x=.=.=.=.=.=.=.x', data: 'a b c d e f g' }
+], gaps: '. 0 1 | 2 3 [ ] ( ) )( (( )) s S .' }

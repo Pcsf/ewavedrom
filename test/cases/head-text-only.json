@@ -1,0 +1,1 @@
+{ signal: [ { name: 'q', wave: '01.0' } ], head: { text: 'Only text' }, foot: { text: 'and foot' } }

@@ -1,0 +1,8 @@
+{ signal: [
+  { name: 'x', wave: '0.1.0.1.', node: '.a.2.B..' },
+  { name: 'y', wave: 'x=.=.=.x', node: '..c.1..d', data: 'p q r', period: 1, phase: 0.5 },
+  { name: 'z', wave: 'p...',     node: '.e.a', period: 2 }
+  ],
+  edge: [ 'a<->c', '2-|-1 two to one', 'B|->d', 'e+d tee', 'c-x', 'q->r missing' ],
+  config: { arcFontSize: 9 }
+}

@@ -1,0 +1,17 @@
+{ signal: [
+  { name: 'clk', wave: 'p.....' },
+  [ 'Master',
+    [ 'ctrl',
+      { name: 'write', wave: '01.0..' },
+      { name: 'read',  wave: '0...10' }
+    ],
+    { name: 'addr', wave: 'x3.x..', data: 'A1' },
+    { name: 'wdata', wave: 'x4.x..', data: 'D1' }
+  ],
+  {},
+  [ 7,
+    { name: 'rdata', wave: 'x...5x', data: 'Q1' }
+  ],
+  [ { name: 'anon', wave: '1.0.1.' } ],
+  [ 'empty' ]
+]}

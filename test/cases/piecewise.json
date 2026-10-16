@@ -1,0 +1,4 @@
+{ signal: [
+  { name: 'ramp', wave: ['pw', { d: 'm0 0 l1 1 h1 v-1 q 0.5 0.5 1 0 t1 1 a1 1 0 0 1 1 0' }] },
+  { name: 'clk', wave: 'p...' }
+]}

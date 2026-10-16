@@ -1,0 +1,10 @@
+{ signal: [
+  { name: 'bus', wave: 'x.=.2.3.4.5.6.7.8.9.x', data: ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'] },
+  { name: 'str', wave: '=.=.=.x', data: 'A1 B2   C3' },
+  { name: 'markup', wave: 'x3.4.x', data: ['<b>bold</b>', 'a<sub>i</sub>+<o>rst</o>'] },
+  { name: 'short', wave: '=.=.=', data: ['only one'] },
+  { name: 'esc & <x> "q"', wave: '4..5', data: ['a&b', '<i>it</i>'] },
+  { name: 'unicode µé ✓', wave: '2.', data: ['Δt'] },
+  { name: 'astral 😀', wave: '1.0' },
+  { name: 42, wave: '01' }
+]}

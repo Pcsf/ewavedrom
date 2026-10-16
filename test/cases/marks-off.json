@@ -1,0 +1,1 @@
+{ signal: [ { name: 'a', wave: 'p...' }, { name: 'b', wave: '0.1.' } ], config: { marks: false, hscale: 3 } }

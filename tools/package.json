@@ -1,0 +1,8 @@
+{
+  "name": "ewavedrom-tools",
+  "private": true,
+  "description": "Development only: regenerates vendored skins and reference SVGs. Not needed at runtime.",
+  "dependencies": {
+    "wavedrom": "3.7.0"
+  }
+}
